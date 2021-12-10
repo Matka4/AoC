@@ -1,13 +1,26 @@
 #!/bin/bash
 
-input=$1
-min_cost=999999
+in="${1:-${0%-[0-9].*}.input}"; [[ -e $in ]] || exit 1
 
-positions=$(tr ',' ' ' < $input)
-max_position=$(echo $positions | tr ' ' '\n' | sort -n | tail -n1)
+read -r -a crabs < <(tr ',' ' ' <"$in")
 
-for i in $(seq 0 $max_position); do
-  cost=$(($(tr ',' '\n' < $input  | while read a; do echo  "$(($a-$i))" | tr -d '-'; done | tr '\n' '+' | sed 's?+$??')))
-  [[ $cost -lt $min_cost ]] && min_cost=$cost
+positions="$(tr ',' '\n' <"$in" |sort -n |uniq)"
+minpos=$(echo "$positions" | head -1)
+maxpos=$(echo "$positions" | tail -1)
+
+optimalpos="$minpos"
+optimalfuel=$(( (maxpos - minpos) * ${#crabs[@]} ))
+
+for ((pos=minpos; pos <= maxpos; pos++)); do
+    fuel=0
+    for crab in "${crabs[@]}"; do
+        ((crab >= pos)) && ((move = crab - pos)) || ((move = pos - crab))
+        ((fuel += move))
+    done
+    if ((fuel < optimalfuel)); then
+        optimalpos="$pos"
+        optimalfuel="$fuel"
+    fi
 done
-echo $min_cost
+
+echo "$optimalfuel"
