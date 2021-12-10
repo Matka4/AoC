@@ -4,4 +4,4 @@ Advent of Code is an Advent calendar of small programming puzzles for a variety 
 
 https://adventofcode.com/
 
-This year I chose to solve it in bash scripting.
+I chose to solve it in bash scripting.
