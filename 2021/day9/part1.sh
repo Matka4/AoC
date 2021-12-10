@@ -1,25 +1,43 @@
-input=$1
-sum=0
+#! /bin/bash
 
-for i in $(seq 1 100); do
-  for j in $(seq 1 100); do
-    x=$(head -n $i $input | tail -n 1 | sed -r 's?(.)(.)?\1 \2 ?g' | awk "{print \$${j}}")
-    upper=$(head -n $(($i-1)) $input | tail -n 1 | sed -r 's?(.)(.)?\1 \2 ?g' | awk "{print \$${j}}")
-    lower=$(head -n $(($i+1)) $input | tail -n 1 | sed -r 's?(.)(.)?\1 \2 ?g' | awk "{print \$${j}}")
-    [[ $i -eq 100 ]] && lower=11
-    left=$(head -n $i $input | tail -n 1 | sed -r 's?(.)(.)?\1 \2 ?g' | awk "{print \$$(($j-1))}")
-    [[ $( echo $left | wc -c) -gt 2 ]] && left=11
-    right=$(head -n $i $input | tail -n 1 | sed -r 's?(.)(.)?\1 \2 ?g' | awk "{print \$$(($j+1))}")
-    
-    echo "${x}: upeer: ${upper}; lower: ${lower}; right: ${right}; left: ${left}"
-    [[ -z $upper ]] && upper=11
-    [[ -z $left ]] && left=11
-    [[ -z $lower ]] && lower=11
-    [[ -z $right ]] && right=11
+data="input"
 
-    [[ $x -lt $upper ]] && [[ $x -lt $lower ]] && [[ $x -lt $right ]] && [[ $x -lt $left ]] && sum=$(($sum+$(($x+1))))  #echo $(($x+1))
+rows=()
+while read -r line; do
+    rows[${#rows[@]}]=$line
+done < "$data"
+# echo "rows: ${rows[*]}"
 
-  done
+risk=0
+max_i=$((${#rows[@]} - 1))
+max_j=$((${#rows[0]} - 1))
+low_points=()
+
+for i in $(seq 0 $max_i); do
+    for j in $(seq 0 $max_j); do
+        # echo "proessing ${rows[$i]:$j:1}"
+        left=$(($j - 1))
+        right=$(($j + 1))
+        up=$(($i - 1))
+        down=$(($i + 1))
+        adjacents=()
+        if [[ $left -lt 0 ]]; then adjacents[0]=9; else adjacents[0]=${rows[$i]:$left:1}; fi
+        if [[ $right -gt $max_j ]]; then adjacents[1]=9; else adjacents[1]=${rows[$i]:$right:1}; fi
+        if [[ $i -gt 0 ]]; then adjacents[2]=${rows[$up]:$j:1}; else adjacents[2]=9; fi
+        if [[ $i -lt $max_i ]]; then adjacents[3]=${rows[$down]:$j:1}; else adjacents[3]=9; fi
+        # echo "adjacents to ${rows[$i]:$j:1}: ${adjacents[*]}"
+
+        is_low=1
+        for adj in ${adjacents[*]}; do
+            if [[ $adj -le ${rows[$i]:$j:1} ]]; then is_low=0; fi
+        done
+
+        if [[ $is_low -eq 1 ]]; then
+            # echo "found low point at ($i, $j): ${rows[$i]:$j:1}"
+            risk=$(($risk + 1 + ${rows[$i]:$j:1}))
+            low_points[${#low_points[@]}]="$i,$j"
+        fi
+    done
 done
 
-echo $sum
+echo "$risk"
