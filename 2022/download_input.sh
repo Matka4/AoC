@@ -12,4 +12,4 @@ echo " The input.txt file has been downloaded into day$day_number directory"
 
 echo "-------------------------------------------------------------"
 
-curl -b "session=$aoc_session" https://adventofcode.com/2022/day/$day_number/input 2>/dev/null > day$day_number/input_test.txt
+curl -b "session=$aoc_session" https://adventofcode.com/2022/day/$day_number/input 2>/dev/null > day$day_number/input.txt
